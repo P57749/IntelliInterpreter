@@ -1,0 +1,5 @@
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.csproj.AssemblyReference.cache
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.GeneratedMSBuildEditorConfig.editorconfig
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.AssemblyInfoInputs.cache
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.AssemblyInfo.cs
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.csproj.CoreCompileInputs.cache

@@ -1,180 +1,187 @@
-public enum TokenType
-{
-    Identifier,     // Identificador (nombres de variables y funciones)
-    StringLiteral,  // Cadena de texto
-    NumberLiteral,  // Número
-    BooleanLiteral, // Valor booleano (true o false)
-    Symbol,         // Símbolo (operadores, paréntesis, comas, etc.)
-    Keyword         // Palabra clave (print, function, let, in, if, else)
-}
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-public class Token
+namespace HulkInterpreter
 {
-    public TokenType Type { get; }
-    public string Lexeme { get; }
-    public int Line { get; }
-
-    public Token(TokenType type, string lexeme, int line)
+    public enum TokenType
     {
-        Type = type;
-        Lexeme = lexeme;
-        Line = line;
-    }
-}
-
-public class Lexer
-{
-    private readonly string input;
-    private int position;
-    private int line;
-
-    public Lexer(string input)
-    {
-        this.input = input;
-        position = 0;
-        line = 1;
+        Identifier,     // Identificador (nombres de variables y funciones)
+        StringLiteral,  // Cadena de texto
+        NumberLiteral,  // Número
+        BooleanLiteral, // Valor booleano (true o false)
+        Symbol,         // Símbolo (operadores, paréntesis, comas, etc.)
+        Keyword         // Palabra clave (print, function, let, in, if, else)
     }
 
-    public List<Token> Tokenize()
+    public class Token
     {
-        var tokens = new List<Token>();
+        public TokenType Type { get; }
+        public string Lexeme { get; }
+        public int Line { get; }
 
-        while (position < input.Length)
+        public Token(TokenType type, string lexeme, int line)
         {
-            char currentChar = input[position];
+            Type = type;
+            Lexeme = lexeme;
+            Line = line;
+        }
+    }
 
-            if (IsWhitespace(currentChar))
-            {
-                ConsumeWhitespace();
-            }
-            else if (IsLetter(currentChar))
-            {
-                tokens.Add(ScanIdentifier());
-            }
-            else if (IsDigit(currentChar))
-            {
-                tokens.Add(ScanNumber());
-            }
-            else if (currentChar == '"')
-            {
-                tokens.Add(ScanStringLiteral());
-            }
-            else
-            {
-                tokens.Add(ScanSymbol());
-            }
+    public class Lexer
+    {
+        private readonly string input;
+        private int position;
+        private int line;
+
+        public Lexer(string input)
+        {
+            this.input = input;
+            position = 0;
+            line = 1;
         }
 
-        return tokens;
-    }
-
-    private Token ScanIdentifier()
-    {
-        int start = position;
-        while (position < input.Length && IsAlphaNumeric(input[position]))
+        public List<Token> Tokenize()
         {
-            position++;
+            var tokens = new List<Token>();
+
+            while (position < input.Length)
+            {
+                char currentChar = input[position];
+
+                if (IsWhitespace(currentChar))
+                {
+                    ConsumeWhitespace();
+                }
+                else if (IsLetter(currentChar))
+                {
+                    tokens.Add(ScanIdentifier());
+                }
+                else if (IsDigit(currentChar))
+                {
+                    tokens.Add(ScanNumber());
+                }
+                else if (currentChar == '"')
+                {
+                    tokens.Add(ScanStringLiteral());
+                }
+                else
+                {
+                    tokens.Add(ScanSymbol());
+                }
+            }
+
+            return tokens;
         }
 
-        string lexeme = input[start..position];
-        TokenType type = IsKeyword(lexeme) ? TokenType.Keyword : TokenType.Identifier;
-        return new Token(type, lexeme, line);
-    }
-
-    private Token ScanNumber()
-    {
-        int start = position;
-        while (position < input.Length && IsDigit(input[position]))
+        private Token ScanIdentifier()
         {
-            position++;
+            int start = position;
+            while (position < input.Length && IsAlphaNumeric(input[position]))
+            {
+                position++;
+            }
+
+            string lexeme = input[start..position];
+            TokenType type = IsKeyword(lexeme) ? TokenType.Keyword : TokenType.Identifier;
+            return new Token(type, lexeme, line);
         }
 
-        if (position < input.Length && input[position] == '.')
+        private Token ScanNumber()
         {
-            position++;
+            int start = position;
             while (position < input.Length && IsDigit(input[position]))
             {
                 position++;
             }
-        }
 
-        string lexeme = input[start..position];
-        return new Token(TokenType.NumberLiteral, lexeme, line);
-    }
-
-    private Token ScanStringLiteral()
-    {
-        int start = position;
-        position++; // Ignore the opening quote
-
-        while (position < input.Length && input[position] != '"')
-        {
-            if (input[position] == '\n')
+            if (position < input.Length && input[position] == '.')
             {
-                line++;
+                position++;
+                while (position < input.Length && IsDigit(input[position]))
+                {
+                    position++;
+                }
             }
 
-            position++;
+            string lexeme = input[start..position];
+            return new Token(TokenType.NumberLiteral, lexeme, line);
         }
 
-        if (position >= input.Length)
+        private Token ScanStringLiteral()
         {
-            // Unterminated string literal
-            throw new Exception($"Unterminated string literal at line {line}");
-        }
+            int start = position;
+            position++; // Ignore the opening quote
 
-        position++; // Ignore the closing quote
-
-        string lexeme = input[start..position];
-        return new Token(TokenType.StringLiteral, lexeme, line);
-    }
-
-    private Token ScanSymbol()
-    {
-        int start = position;
-        position++;
-
-        string lexeme = input[start..position];
-        return new Token(TokenType.Symbol, lexeme, line);
-    }
-
-    private bool IsWhitespace(char c)
-    {
-        return c == ' ' || c == '\t' || c == '\r' || c == '\n';
-    }
-
-    private void ConsumeWhitespace()
-    {
-        while (position < input.Length && IsWhitespace(input[position]))
-        {
-            if (input[position] == '\n')
+            while (position < input.Length && input[position] != '"')
             {
-                line++;
+                if (input[position] == '\n')
+                {
+                    line++;
+                }
+
+                position++;
             }
 
-            position++;
+            if (position >= input.Length)
+            {
+                // Unterminated string literal
+                throw new Exception($"Unterminated string literal at line {line}");
+            }
+
+            position++; // Ignore the closing quote
+
+            string lexeme = input[start..position];
+            return new Token(TokenType.StringLiteral, lexeme, line);
         }
-    }
 
-    private bool IsLetter(char c)
-    {
-        return char.IsLetter(c) || c == '_';
-    }
+        private Token ScanSymbol()
+        {
+            int start = position;
+            position++;
 
-    private bool IsAlphaNumeric(char c)
-    {
-        return char.IsLetterOrDigit(c) || c == '_';
-    }
+            string lexeme = input[start..position];
+            return new Token(TokenType.Symbol, lexeme, line);
+        }
 
-    private bool IsDigit(char c)
-    {
-        return char.IsDigit(c);
-    }
+        private bool IsWhitespace(char c)
+        {
+            return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+        }
 
-    private bool IsKeyword(string lexeme)
-    {
-        // Lista de palabras clave de HULK
-        string[] keywords = { "print", "function", "let", "in", "if", "else" };
-        return keywords.Contains(lexeme);
+        private void ConsumeWhitespace()
+        {
+            while (position < input.Length && IsWhitespace(input[position]))
+            {
+                if (input[position] == '\n')
+                {
+                    line++;
+                }
+
+                position++;
+            }
+        }
+
+        private bool IsLetter(char c)
+        {
+            return char.IsLetter(c) || c == '_';
+        }
+
+        private bool IsAlphaNumeric(char c)
+        {
+            return char.IsLetterOrDigit(c) || c == '_';
+        }
+
+        private bool IsDigit(char c)
+        {
+            return char.IsDigit(c);
+        }
+
+        private bool IsKeyword(string lexeme)
+        {
+            // Lista de palabras clave de HULK
+            string[] keywords = { "print", "function", "let", "in", "if", "else","fib" };
+            return keywords.Contains(lexeme);
+        }
     }
 }
