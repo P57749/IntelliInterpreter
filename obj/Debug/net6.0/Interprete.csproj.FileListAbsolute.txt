@@ -3,3 +3,13 @@
 /Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.AssemblyInfoInputs.cache
 /Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.AssemblyInfo.cs
 /Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.csproj.CoreCompileInputs.cache
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/bin/Debug/net6.0/Interprete
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/bin/Debug/net6.0/Interprete.deps.json
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/bin/Debug/net6.0/Interprete.runtimeconfig.json
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/bin/Debug/net6.0/Interprete.dll
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/bin/Debug/net6.0/Interprete.pdb
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.dll
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/refint/Interprete.dll
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.pdb
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/Interprete.genruntimeconfig.cache
+/Users/racielpuposantos/Escuela/Proyectos/Interprete/obj/Debug/net6.0/ref/Interprete.dll

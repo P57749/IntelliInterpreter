@@ -214,7 +214,7 @@ public class FunctionDefinition
     {
         if (arguments.Count != Parameters.Count)
         {
-            throw new Exception($"Semantic error: Function '{Identifier}' receives {Parameters.Count} argument(s), but {arguments.Count} were given.");
+            throw new Exception($"Semantic error: Function '{Parameters[0]}' receives {Parameters.Count} argument(s), but {arguments.Count} were given.");
         }
 
         // Establece los valores de los argumentos en el ámbito de variables

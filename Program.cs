@@ -28,14 +28,18 @@ namespace HulkInterpreter
 
                 try
                 {
-                    Lexer lexer = new Lexer(input);
 
                     // Realiza el análisis léxico
+                    Lexer lexer = new Lexer(input);
                     List<Token> tokens = lexer.Tokenize();
 
                     // Realiza el análisis sintáctico
                     Parser parser = new Parser(tokens);
                     ExpressionNode expression = parser.ParseExpression();
+
+                    // Realiza el análisis semántico
+                    // SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(expression);
+                    // semanticAnalyzer.Analyze();
 
                     // Ejecuta el árbol de sintaxis abstracta (AST)
                     var result = expression.Evaluate();
@@ -49,10 +53,13 @@ namespace HulkInterpreter
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error occurred: {ex.Message}");
+                    Console.WriteLine($"SYNTAX ERROR: {ex.Message}");
                 }
+                // catch (SemanticException semEx)
+                // {
+                //     Console.WriteLine($"SEMANTIC ERROR: {semEx.Message}");
+                // }
             }
         }
     }
-    
 }
