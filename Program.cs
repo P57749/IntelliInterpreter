@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HulkInterpreter
 {
@@ -32,11 +33,19 @@ namespace HulkInterpreter
                     // Realiza el análisis léxico
                     List<Token> tokens = lexer.Tokenize();
 
-                    // Imprime los tokens
-                    foreach (var token in tokens)
-                    {
-                        Console.WriteLine($"{token.Type}: {token.Lexeme} (Line {token.Line})");
-                    }
+                    // Realiza el análisis sintáctico
+                    Parser parser = new Parser(tokens);
+                    ExpressionNode expression = parser.ParseExpression();
+
+                    // Ejecuta el árbol de sintaxis abstracta (AST)
+                    var result = expression.Evaluate();
+
+                    // Imprime el resultado de la ejecución
+                    Console.WriteLine(result);
+                }
+                catch (LexerException lexEx)
+                {
+                    Console.WriteLine($"LEXICAL ERROR: {lexEx.Message}");
                 }
                 catch (Exception ex)
                 {
@@ -45,4 +54,5 @@ namespace HulkInterpreter
             }
         }
     }
+    
 }

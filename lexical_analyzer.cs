@@ -180,8 +180,15 @@ namespace HulkInterpreter
         private bool IsKeyword(string lexeme)
         {
             // Lista de palabras clave de HULK
-            string[] keywords = { "print", "function", "let", "in", "if", "else","fib" };
+            string[] keywords = { "print", "function", "let", "in", "if", "else"};
             return keywords.Contains(lexeme);
+        }
+    }
+    
+    public class LexerException : Exception
+    {
+        public LexerException(string message) : base(message)
+        {
         }
     }
 }
