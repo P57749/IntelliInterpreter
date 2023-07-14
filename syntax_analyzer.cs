@@ -15,115 +15,113 @@ namespace HulkInterpreter
             currentTokenIndex = 0;
         }
 
-        // public ExpressionNode ParseExpression()
-        // {
-        //     Token currentToken = GetToken();
+        public ExpressionNode ParseExpression()
+        {
+            return ParseBinaryExpression();
+        }
 
-        //     if (currentToken.Type == TokenType.Keyword)
-        //     {
-        //         if (IsKeyword("print", currentToken.Lexeme))
-        //         {
-        //             ParsePrintStatement();
-        //             return null;
-        //         }
-        //         else if (IsKeyword("let", currentToken.Lexeme))
-        //         {
-        //             ParseVariableDeclaration();
-        //             return null;
-        //         }
-        //         else if (IsKeyword("if", currentToken.Lexeme))
-        //         {
-        //             ParseIfStatement();
-        //             return null;
-        //         }
-        //         else if (IsKeyword("function", currentToken.Lexeme))
-        //         {
-        //             ParseInlineFunctionDeclaration();
-        //             return null;
-        //         }
-        //         else
-        //         {
-        //             return ParseVariableReference();
-        //         }
-        //     }
-        //     else if (currentToken.Type == TokenType.NumberLiteral)
-        //     {
-        //         return ParseNumberLiteral();
-        //     }
-        //     else if (currentToken.Type == TokenType.StringLiteral)
-        //     {
-        //         return ParseStringLiteral();
-        //     }
-        //     else if (currentToken.Type == TokenType.Symbol && currentToken.Lexeme == "(")
-        //     {
-        //         return ParseParenthesizedExpression();
-        //     }
-        //     else
-        //     {
-        //         // Error sintáctico
-        //         throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
-        //     }
-        // }
-
-
-
-public ExpressionNode ParseExpression()
+        private ExpressionNode ParseBinaryExpression(int precedence = 0)
 {
-    Token currentToken = GetToken();
+    ExpressionNode left = ParsePrimaryExpression();
 
-    if (currentToken.Type == TokenType.Identifier)
+    while (IsBinaryOperator(PeekToken()?.Lexeme) && GetPrecedence(PeekToken()?.Lexeme) >= precedence)
     {
-        if (IsKeyword("print", currentToken.Lexeme))
+        Token operatorToken = GetToken();
+        TokenType operatorType = operatorToken.Type;
+
+        if (operatorType == TokenType.Symbol)
         {
-            ParsePrintStatement();
-            return null;
-        }
-        else if (IsKeyword("let", currentToken.Lexeme))
-        {
-            ParseVariableDeclaration();
-            return null;
-        }
-        else if (IsKeyword("if", currentToken.Lexeme))
-        {
-            ParseIfStatement();
-            return null;
-        }
-        else if (IsKeyword("function", currentToken.Lexeme))
-        {
-            ParseInlineFunctionDeclaration();
-            return null;
+            string operatorLexeme = operatorToken.Lexeme;
+            ExpressionNode right = ParseBinaryExpression(GetPrecedence(operatorLexeme));
+
+            left = new BinaryExpressionNode(left, operatorLexeme, right);
         }
         else
         {
-            return ParseVariableReference();
+            throw new Exception($"Syntax error at line {operatorToken.Line}: Unexpected token '{operatorToken.Lexeme}'");
         }
     }
-    else if (currentToken.Type == TokenType.NumberLiteral)
-    {
-        return ParseNumberLiteral();
-    }
-    else if (currentToken.Type == TokenType.StringLiteral)
-    {
-        return ParseStringLiteral();
-    }
-    else if (currentToken.Type == TokenType.Symbol && currentToken.Lexeme == "(")
-    {
-        return ParseParenthesizedExpression();
-    }
-    else
-    {
-        // Error sintáctico
-        throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
-    }
+
+    return left;
 }
 
 
 
-
-        public FunctionDeclarationNode ParseInlineFunctionDeclaration()
+        private ExpressionNode ParsePrimaryExpression()
         {
             Token currentToken = GetToken();
-            ExpectTokenType(TokenType.Keyword);
+
+            if (currentToken.Type == TokenType.Identifier)
+            {
+                if (IsKeyword("print", currentToken.Lexeme))
+                {
+                    return ParsePrintStatement();
+                }
+                else if (IsKeyword("let", currentToken.Lexeme))
+                {
+                    return ParseVariableDeclaration();
+                }
+                else if (IsKeyword("if", currentToken.Lexeme))
+                {
+                    return ParseIfStatement();
+                }
+                else if (IsKeyword("function", currentToken.Lexeme))
+                {
+                    return ParseInlineFunctionDeclaration();
+                }
+                else if (IsKeyword("sin", currentToken.Lexeme) || IsKeyword("cos", currentToken.Lexeme))
+                {
+                    return ParseFunctionCall(currentToken.Lexeme);
+                }
+                else
+                {
+                    return ParseVariableReference(currentToken.Lexeme);
+                }
+            }
+            else if (currentToken.Type == TokenType.NumberLiteral)
+            {
+                return ParseNumberLiteral(currentToken.Lexeme);
+            }
+            else if (currentToken.Type == TokenType.StringLiteral)
+            {
+                return ParseStringLiteral(currentToken.Lexeme);
+            }
+            else if (currentToken.Type == TokenType.Symbol && currentToken.Lexeme == "(")
+            {
+                ExpressionNode expression = ParseExpression();
+                ExpectSymbol(")");
+                return expression;
+            }
+            else
+            {
+                // Error sintáctico
+                throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
+            }
+        }
+
+        private VariableReferenceNode ParseVariableReference(string identifier)
+        {
+            return new VariableReferenceNode(identifier);
+        }
+
+        private NumberLiteralNode ParseNumberLiteral(string lexeme)
+        {
+            if (!double.TryParse(lexeme, out double value))
+            {
+                throw new Exception($"Syntax error: Invalid number literal '{lexeme}'");
+            }
+
+            return new NumberLiteralNode(value);
+        }
+
+        private StringLiteralNode ParseStringLiteral(string lexeme)
+        {
+            return new StringLiteralNode(lexeme);
+        }
+
+        private FunctionDeclarationNode ParseInlineFunctionDeclaration()
+        {
+            ExpectKeyword("function");
             ExpectSymbol("(");
 
             List<string> parameters = new List<string>();
@@ -148,7 +146,18 @@ public ExpressionNode ParseExpression()
             return new FunctionDeclarationNode("", parameters, body);
         }
 
-        public StatementNode ParseStatement()
+        private FunctionCallNode ParseFunctionCall(string functionName)
+        {
+            ExpectSymbol("(");
+
+            ExpressionNode argument = ParseExpression();
+
+            ExpectSymbol(")");
+
+            return new FunctionCallNode(functionName, argument);
+        }
+
+        private StatementNode ParseStatement()
         {
             Token currentToken = GetToken();
 
@@ -156,8 +165,7 @@ public ExpressionNode ParseExpression()
             {
                 if (currentToken.Lexeme == "print")
                 {
-                    ParsePrintStatement();
-                    return null;
+                    return ParsePrintStatement();
                 }
                 else if (currentToken.Lexeme == "let")
                 {
@@ -171,13 +179,13 @@ public ExpressionNode ParseExpression()
 
             if (currentToken.Type == TokenType.Identifier)
             {
-                return ParseAssignmentStatement();
+                return ParseAssignmentStatement(currentToken.Lexeme);
             }
 
             throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
         }
 
-        public FunctionDeclarationNode ParseFunctionDeclaration()
+        private FunctionDeclarationNode ParseFunctionDeclaration()
         {
             Token currentToken = GetToken();
 
@@ -191,74 +199,10 @@ public ExpressionNode ParseExpression()
             }
         }
 
-        public VariableReferenceNode ParseVariableReference()
+        private VariableDeclarationNode ParseVariableDeclaration()
         {
-            Token currentToken = GetToken();
-            ExpectTokenType(TokenType.Identifier);
+            ExpectKeyword("let");
 
-            return new VariableReferenceNode(currentToken.Lexeme);
-        }
-
-        public NumberLiteralNode ParseNumberLiteral()
-        {
-            Token currentToken = GetToken();
-            ExpectTokenType(TokenType.NumberLiteral);
-
-            if (!double.TryParse(currentToken.Lexeme, out double value))
-            {
-                throw new Exception($"Syntax error at line {currentToken.Line}: Invalid number literal '{currentToken.Lexeme}'");
-            }
-
-            return new NumberLiteralNode(value);
-        }
-
-        public StringLiteralNode ParseStringLiteral()
-        {
-            Token currentToken = GetToken();
-            ExpectTokenType(TokenType.StringLiteral);
-
-            return new StringLiteralNode(currentToken.Lexeme);
-        }
-
-        public ParenthesizedExpressionNode ParseParenthesizedExpression()
-        {
-            ExpectSymbol("(");
-
-            ExpressionNode expression = ParseExpression();
-
-            ExpectSymbol(")");
-
-            return new ParenthesizedExpressionNode(expression);
-        }
-
-        public StatementNode ParsePrintStatement()
-{
-    ExpectKeyword("print");
-
-    ExpressionNode expression = ParseExpression();
-
-    ExpectSymbol(";");
-
-    return new PrintStatementNode(expression);
-}
-
-public StatementNode ParseVariableDeclaration()
-{
-    ExpectKeyword("let");
-
-    Token identifierToken = GetToken();
-    ExpectTokenType(TokenType.Identifier);
-
-    ExpectSymbol("=");
-
-    ExpressionNode expression = ParseExpression();
-
-    ExpectSymbol(";");
-
-    return new VariableDeclarationNode(identifierToken.Lexeme, expression);
-}
-        public AssignmentStatementNode ParseAssignmentStatement()
-        {
             Token identifierToken = GetToken();
             ExpectTokenType(TokenType.Identifier);
 
@@ -268,27 +212,47 @@ public StatementNode ParseVariableDeclaration()
 
             ExpectSymbol(";");
 
-            return new AssignmentStatementNode(identifierToken.Lexeme, expression);
+            return new VariableDeclarationNode(identifierToken.Lexeme, expression);
         }
 
-public StatementNode ParseIfStatement()
-{
-    ExpectKeyword("if");
+        private AssignmentStatementNode ParseAssignmentStatement(string identifier)
+        {
+            ExpectSymbol("=");
 
-    ExpectSymbol("(");
+            ExpressionNode expression = ParseExpression();
 
-    ExpressionNode condition = ParseExpression();
+            ExpectSymbol(";");
 
-    ExpectSymbol(")");
+            return new AssignmentStatementNode(identifier, expression);
+        }
 
-    StatementNode ifBody = ParseStatement();
+        private IfStatementNode ParseIfStatement()
+        {
+            ExpectSymbol("(");
 
-    ExpectKeyword("else");
+            ExpressionNode condition = ParseExpression();
 
-    StatementNode elseBody = ParseStatement();
+            ExpectSymbol(")");
 
-    return new IfStatementNode(condition, ifBody, elseBody);
-}
+            StatementNode ifBody = ParseStatement();
+
+            ExpectKeyword("else");
+
+            StatementNode elseBody = ParseStatement();
+
+            return new IfStatementNode(condition, ifBody, elseBody);
+        }
+
+        private PrintStatementNode ParsePrintStatement()
+        {
+            ExpectKeyword("print");
+
+            ExpressionNode expression = ParseExpression();
+
+            ExpectSymbol(";");
+
+            return new PrintStatementNode(expression);
+        }
 
         private void ExpectTokenType(TokenType expectedType)
         {
@@ -349,5 +313,32 @@ public StatementNode ParseIfStatement()
                 return null;
             }
         }
+
+        private bool IsBinaryOperator(string lexeme)
+{
+    return lexeme == "+" || lexeme == "-" || lexeme == "*" || lexeme == "/" || lexeme == "sin" || lexeme == "cos" || lexeme == "!";
+}
+
+        private int GetPrecedence(string lexeme)
+{
+    switch (lexeme)
+    {
+        case "+":
+        case "-":
+            return 1;
+        case "*":
+        case "/":
+            return 2;
+        case "sin":
+        case "cos":
+        case "!":
+            return 3;
+        default:
+            return 0;
     }
+}
+
+
+
+}
 }

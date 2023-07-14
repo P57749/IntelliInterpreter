@@ -1,5 +1,5 @@
 using System;
-
+using System.Collections.Generic;
 namespace HulkInterpreter
 {
     public abstract class ExpressionNode
@@ -80,23 +80,24 @@ namespace HulkInterpreter
         }
     }
 
-    public class PrintStatementNode : StatementNode
+    public class PrintStatementNode : ExpressionNode
+{
+    public ExpressionNode Expression { get; }
+
+    public PrintStatementNode(ExpressionNode expression)
     {
-        public ExpressionNode Expression { get; }
-
-        public PrintStatementNode(ExpressionNode expression)
-        {
-            Expression = expression;
-        }
-
-        public override void Execute()
-        {
-            var result = Expression.Evaluate();
-            Console.WriteLine(result);
-        }
+        Expression = expression;
     }
 
-    public class VariableDeclarationNode : StatementNode
+    public override object Evaluate()
+    {
+        var result = Expression.Evaluate();
+        Console.WriteLine(result);
+        return null; //
+    }
+}
+
+    public class VariableDeclarationNode : ExpressionNode
 {
     public string Identifier { get; }
     public ExpressionNode Expression { get; }
@@ -107,13 +108,15 @@ namespace HulkInterpreter
         Expression = expression;
     }
 
-    public override void Execute()
+    public override object Evaluate()
     {
         // Obtener el valor de la expresión
         var value = Expression.Evaluate();
 
         // Declarar la variable y asignarle el valor
         VariableScope.AddVariable(Identifier, value);
+
+        return null; // 
     }
 }
 
@@ -147,55 +150,55 @@ namespace HulkInterpreter
 }
 
 
-    public class IfStatementNode : StatementNode
+    public class IfStatementNode : ExpressionNode
+{
+    public ExpressionNode Condition { get; }
+    public ExpressionNode IfBody { get; }
+    public ExpressionNode ElseBody { get; }
+
+    public IfStatementNode(ExpressionNode condition, ExpressionNode ifBody, ExpressionNode elseBody)
     {
-        public ExpressionNode Condition { get; }
-        public StatementNode IfBody { get; }
-        public StatementNode ElseBody { get; }
-
-        public IfStatementNode(ExpressionNode condition, StatementNode ifBody, StatementNode elseBody)
-        {
-            Condition = condition;
-            IfBody = ifBody;
-            ElseBody = elseBody;
-        }
-
-        public override void Execute()
-        {
-            var conditionValue = Condition.Evaluate();
-            if (Convert.ToBoolean(conditionValue))
-            {
-                IfBody.Execute();
-            }
-            else
-            {
-                ElseBody.Execute();
-            }
-        }
+        Condition = condition;
+        IfBody = ifBody;
+        ElseBody = elseBody;
     }
 
-
-
-public class FunctionDeclarationNode : StatementNode
+    public override object Evaluate()
     {
-        public string Identifier { get; }
-        public List<string> Parameters { get; }
-        public StatementNode Body { get; }
-
-        public FunctionDeclarationNode(string identifier, List<string> parameters, StatementNode body)
+        var conditionValue = Condition.Evaluate();
+        if (Convert.ToBoolean(conditionValue))
         {
-            Identifier = identifier;
-            Parameters = parameters;
-            Body = body;
+            return IfBody.Evaluate();
         }
+        else
+        {
+            return ElseBody.Evaluate();
+        }
+    }
+}
 
-        public override void Execute()
+
+
+public class FunctionDeclarationNode : ExpressionNode
+{
+    public string Identifier { get; }
+    public List<string> Parameters { get; }
+    public ExpressionNode Body { get; }
+
+    public FunctionDeclarationNode(string identifier, List<string> parameters, ExpressionNode body)
+    {
+        Identifier = identifier;
+        Parameters = parameters;
+        Body = body;
+    }
+
+    public override object Evaluate()
 {
     var function = new FunctionDefinition(Parameters, Body);
     FunctionScope.AddFunction(Identifier, function);
+    return Identifier; // Devuelve el nombre de la función declarada
 }
-
-    }
+}
 
 
 
@@ -305,5 +308,200 @@ public static class FunctionScope
         return variables.ContainsKey(identifier);
     }
 }
+
+
+public class FunctionCallNode : ExpressionNode
+{
+    public string FunctionName { get; }
+    public ExpressionNode Argument { get; }
+
+    public FunctionCallNode(string functionName, ExpressionNode argument)
+    {
+        FunctionName = functionName;
+        Argument = argument;
+    }
+
+    public override object Evaluate()
+    {
+        if (FunctionName == "sin")
+        {
+            double argValue = Convert.ToDouble(Argument.Evaluate());
+            return Math.Sin(argValue);
+        }
+        else if (FunctionName == "cos")
+        {
+            double argValue = Convert.ToDouble(Argument.Evaluate());
+            return Math.Cos(argValue);
+        }
+        else if (FunctionName == "factorial")
+        {
+            int argValue = Convert.ToInt32(Argument.Evaluate());
+            return Factorial(argValue);
+        }
+        else if (FunctionName == "+" || FunctionName == "-" || FunctionName == "*" || FunctionName == "/")
+        {
+            ExpressionNode left = new NumberLiteralNode(0); // Placeholder value
+            ExpressionNode right = Argument;
+            return new BinaryExpressionNode(left, FunctionName, right).Evaluate();
+        }
+        else
+        {
+            throw new Exception($"Unknown function '{FunctionName}'");
+        }
+    }
+
+    private int Factorial(int n)
+    {
+        if (n == 0)
+            return 1;
+        else
+            return n * Factorial(n - 1);
+    }
+}
+
+
+
+
+
+
+
+public class BinaryExpressionNode : ExpressionNode
+{
+    public ExpressionNode LeftOperand { get; }
+    public string Operator { get; }
+    public ExpressionNode RightOperand { get; }
+
+    public BinaryExpressionNode(ExpressionNode leftOperand, string @operator, ExpressionNode rightOperand)
+    {
+        LeftOperand = leftOperand;
+        Operator = @operator;
+        RightOperand = rightOperand;
+    }
+
+
+    public override object Evaluate()
+    {
+        var leftValue = LeftOperand.Evaluate();
+        var rightValue = RightOperand.Evaluate();
+
+        switch (Operator)
+        {
+            case "+":
+                return Add(leftValue, rightValue);
+            case "-":
+                return Subtract(leftValue, rightValue);
+            case "*":
+                return Multiply(leftValue, rightValue);
+            case "/":
+                return Divide(leftValue, rightValue);
+            case "sin":
+                return Sin(leftValue);
+            case "cos":
+                return Cos(leftValue);
+            case "!":
+                return Factorial(leftValue);
+            default:
+                throw new InvalidOperationException($"Unsupported symbolic operator: {Operator}");
+        }
+    }
+
+//     private object PerformSymbolicOperation(object leftValue, object rightValue)
+// {
+//     // Realizar las operaciones según el operador
+//     switch (Operator)
+//     {
+//         case TokenType.Symbol when Operator.Lexeme == "+":
+//             return Add(leftValue, rightValue);
+//         case TokenType.Symbol when Operator.Lexeme == "-":
+//             return Subtract(leftValue, rightValue);
+//         case TokenType.Symbol when Operator.Lexeme == "*":
+//             return Multiply(leftValue, rightValue);
+//         case TokenType.Symbol when Operator.Lexeme == "/":
+//             return Divide(leftValue, rightValue);
+//         case TokenType.Symbol when Operator.Lexeme == "sin":
+//             return Sin(leftValue);
+//         case TokenType.Symbol when Operator.Lexeme == "cos":
+//             return Cos(leftValue);
+//         case TokenType.Symbol when Operator.Lexeme == "!":
+//             return Factorial(leftValue);
+//         default:
+//             throw new InvalidOperationException($"Unsupported symbolic operator: {Operator}");
+//     }
+// }
+
+
+private object Add(object leftValue, object rightValue)
+    {
+        if (leftValue is double left && rightValue is double right)
+            return left + right;
+
+        if (leftValue is string leftStr && rightValue is string rightStr)
+            return leftStr + rightStr;
+
+        throw new InvalidOperationException($"Invalid operands for addition: {leftValue}, {rightValue}");
+    }
+
+    private object Subtract(object leftValue, object rightValue)
+    {
+        if (leftValue is double left && rightValue is double right)
+            return left - right;
+
+        throw new InvalidOperationException($"Invalid operands for subtraction: {leftValue}, {rightValue}");
+    }
+
+    private object Multiply(object leftValue, object rightValue)
+    {
+        if (leftValue is double left && rightValue is double right)
+            return left * right;
+
+        throw new InvalidOperationException($"Invalid operands for multiplication: {leftValue}, {rightValue}");
+    }
+
+    private object Divide(object leftValue, object rightValue)
+    {
+        if (leftValue is double left && rightValue is double right)
+        {
+            if (right == 0)
+                throw new InvalidOperationException("Division by zero is not allowed");
+
+            return left / right;
+        }
+
+        throw new InvalidOperationException($"Invalid operands for division: {leftValue}, {rightValue}");
+    }
+
+    private object Sin(object operandValue)
+    {
+        if (operandValue is double operand)
+            return Math.Sin(operand);
+
+        throw new InvalidOperationException($"Invalid operand for sine operation: {operandValue}");
+    }
+
+    private object Cos(object operandValue)
+    {
+        if (operandValue is double operand)
+            return Math.Cos(operand);
+
+        throw new InvalidOperationException($"Invalid operand for cosine operation: {operandValue}");
+    }
+
+    private object Factorial(object operandValue)
+    {
+        if (operandValue is double operand && operand >= 0)
+        {
+            double result = 1;
+            for (double i = 2; i <= operand; i++)
+            {
+                result *= i;
+            }
+            return result;
+        }
+
+        throw new InvalidOperationException($"Invalid operand for factorial operation: {operandValue}");
+    }
+}
+
+
 
 }
