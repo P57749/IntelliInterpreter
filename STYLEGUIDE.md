@@ -1,6 +1,6 @@
  # INTELLINTERPRETER Style Guide
 
-The Hulk Interpreter project follows a consistent coding style to ensure readability and maintainability. By adhering to this style guide, we can create clean and consistent code that is easy to understand and collaborate on. Please review the guidelines below before making any contributions to the Hulk Interpreter project.
+The Intellinterpreter project follows a consistent coding style to ensure readability and maintainability. By adhering to this style guide, we can create clean and consistent code that is easy to understand and collaborate on. Please review the guidelines below before making any contributions to the Hulk Interpreter project.
 
 ## General Guidelines
 

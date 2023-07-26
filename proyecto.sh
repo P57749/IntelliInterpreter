@@ -5,7 +5,7 @@ TEX_REPORT="informe.tex" # Nombre del archivo LaTeX del informe
 TEX_SLIDES="presentacion.tex" # Nombre del archivo LaTeX de las presentaciones
 PDF_REPORT="${TEX_REPORT%.tex}.pdf" # Nombre del archivo PDF del informe generado
 PDF_SLIDES="${TEX_SLIDES%.tex}.pdf" # Nombre del archivo PDF de las presentaciones generado
-CONSOLE_PROJECT="interpreter" # Nombre del proyecto de la aplicación de consola en C#
+CONSOLE_PROJECT="Interprete" # Nombre del proyecto de la aplicación de consola en C#
 VIEWER_CMD_DEFAULT="xdg-open" # Comando por defecto para visualizar archivos PDF
 
 # Función para compilar un archivo LaTeX y generar el PDF
