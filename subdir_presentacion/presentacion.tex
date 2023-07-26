@@ -27,7 +27,7 @@
 
 \vspace{1.5cm}
 
-\Large Raciel Pupo Santos 
+\Large Raciel Pupo Santos
 
 \vspace{5cm}
 
@@ -53,18 +53,36 @@
 \section{Lexer - Tokenizando el Código Fuente}
     \setmainfont{LEMONMILK-Regular.otf}[Path=Assets/Fonts/]
     En el corazón del Intérprete Hulk se encuentra el Lexer, el analizador léxico, que realiza una tarea crucial: tokenizar el código fuente. Mediante el uso de un autómata finito, el Lexer identifica palabras clave, identificadores, literales y símbolos, entre otros elementos. Esta tokenización crea una representación estructurada y significativa del código fuente, permitiendo fases posteriores de interpretación.
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.5\linewidth]{Assets/Tokenization.png} % Asegúrate de tener el archivo de la imagen en el mismo directorio o ajusta la ruta aquí.
+        \caption{Proceso de Tokenización (Analizador Léxico)}
+        \label{fig:tokenizacion}
+    \end{figure}
 \newpage
 
 \setmainfont{LEMONMILK-Bold.otf}[Path=Assets/Fonts/]
 \section{Parser - Construyendo el Árbol de Sintaxis Abstracta (AST)}
     \setmainfont{LEMONMILK-Regular.otf}[Path=Assets/Fonts/]
     El Parser, componente clave del Intérprete Hulk, es responsable de construir el Árbol de Sintaxis Abstracta (AST) a partir de la secuencia de tokens generada por el Lexer. El AST es una representación jerárquica de la sintaxis y semántica del programa, que guía al intérprete en la ejecución precisa del código Hulk. Mediante el enfoque de análisis descendente recursivo, el Parser examina meticulosamente cada token, creando nodos en el AST que reflejan con precisión la precedencia y asociatividad de los operadores.
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.5\linewidth]{Assets/ArboldeSintaxisAbstracta.png} % Asegúrate de tener el archivo de la imagen en el mismo directorio o ajusta la ruta aquí.
+        \caption{Construcción del AST}
+        \label{fig:AST}
+    \end{figure}
 \newpage
 
 \setmainfont{LEMONMILK-Bold.otf}[Path=Assets/Fonts/]
 \section{Analizador Semántico - Garantizando la Semántica del Programa}
     \setmainfont{LEMONMILK-Regular.otf}[Path=Assets/Fonts/]
     El Analizador Semántico se presenta como el guardián, protegiendo contra inconsistencias semánticas en el programa Hulk. Operando sobre el AST creado por el Parser, el analizador escruta las referencias de variables, las declaraciones de funciones y la compatibilidad de tipos de expresiones. Las tablas de variables y funciones desempeñan un papel vital, permitiendo al analizador semántico rastrear meticulosamente las variables y funciones definidas en el programa.
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.5\linewidth]{Assets/AnalizadorSemantico.png} % Asegúrate de tener el archivo de la imagen en el mismo directorio o ajusta la ruta aquí.
+        \caption{Proceso del Analizador Semantico}
+        \label{fig:Asemantico}
+    \end{figure}
     % \subsection{Feature 1}
     %     \lipsum[2-4]
     % \subsection{Feature 2}

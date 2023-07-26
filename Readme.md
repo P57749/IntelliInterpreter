@@ -43,6 +43,38 @@ To run the Hulk Interpreter, follow these steps:
 
 1. The interpreter will display a prompt where you can input expressions and programs written in HULK. Press Enter to execute and   seethe results.
 
+# Project.sh - Bash Script
+
+The `project.sh` script is part of the Intellinterpreter project and allows you to perform various actions. Below are the available options:
+
+- `run`: Compile and execute the C# console application project.
+- `report`: Compile and generate the PDF of the LaTeX report.
+- `slides`: Compile and generate the PDF of the LaTeX presentation.
+- `show_report`: View the report PDF (generate it if it does not exist) using the default PDF viewer (`xdg-open`) or a custom viewer command.
+- `show_slides`: View the presentation PDF (generate it if it does not exist) using the default PDF viewer (`xdg-open`) or a custom viewer command.
+- `clean`: Clean auxiliary files generated during LaTeX compilation and the C# console application compilation.
+
+
+To use the script, give it execute permissions with the following command:
+
+```bash
+chmod +x project.sh
+
+Then, run it with the desired options. For example:
+
+./project.sh run
+
+./project.sh report
+
+./project.sh slides
+
+./project.sh show_report
+
+./project.sh show_slides
+
+./project.sh clean
+
+
 ## Contributions and Feedback
 
 We believe in the power of collaboration and welcome contributions from the developer community. If you would like to contribute to the Hulk Interpreter project, please follow the guidelines outlined in the CONTRIBUTING.md file.

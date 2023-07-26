@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Variables
-TEX_REPORT="informe.tex" # Nombre del archivo LaTeX del informe
-TEX_SLIDES="presentacion.tex" # Nombre del archivo LaTeX de las presentaciones
+TEX_REPORT="subdir_informe/informe.tex"
+TEX_SLIDES="subdir_presentacion/presentacion.tex"
 PDF_REPORT="${TEX_REPORT%.tex}.pdf" # Nombre del archivo PDF del informe generado
 PDF_SLIDES="${TEX_SLIDES%.tex}.pdf" # Nombre del archivo PDF de las presentaciones generado
 CONSOLE_PROJECT="Interprete" # Nombre del proyecto de la aplicación de consola en C#
