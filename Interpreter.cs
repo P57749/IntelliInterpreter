@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Reflection.Metadata.Ecma335;
+using System.Security.Principal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -38,14 +40,16 @@ namespace HulkInterpreter
                     ExpressionNode expression = parser.ParseExpression();
 
                     // Realiza el análisis semántico
-                    // SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(expression);
-                    // semanticAnalyzer.Analyze();
+                    SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(expression);
+                    semanticAnalyzer.Analyze();
 
                     // Ejecuta el árbol de sintaxis abstracta (AST)
                     var result = expression.Evaluate();
 
                     // Imprime el resultado de la ejecución
                     Console.WriteLine(result);
+
+
                 }
                 catch (LexerException lexEx)
                 {
@@ -55,10 +59,10 @@ namespace HulkInterpreter
                 {
                     Console.WriteLine($"SYNTAX ERROR: {ex.Message}");
                 }
-                // catch (SemanticException semEx)
-                // {
-                //     Console.WriteLine($"SEMANTIC ERROR: {semEx.Message}");
-                // }
+                catch (SemanticException semEx)
+                {
+                    Console.WriteLine($"SEMANTIC ERROR: {semEx.Message}");
+                }
             }
         }
     }

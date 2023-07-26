@@ -21,83 +21,172 @@ namespace HulkInterpreter
         }
 
         private ExpressionNode ParseBinaryExpression(int precedence = 0)
-{
-    ExpressionNode left = ParsePrimaryExpression();
-
-    while (IsBinaryOperator(PeekToken()?.Lexeme) && GetPrecedence(PeekToken()?.Lexeme) >= precedence)
-    {
-        Token operatorToken = GetToken();
-        TokenType operatorType = operatorToken.Type;
-
-        if (operatorType == TokenType.Symbol)
         {
-            string operatorLexeme = operatorToken.Lexeme;
-            ExpressionNode right = ParseBinaryExpression(GetPrecedence(operatorLexeme));
+            ExpressionNode left = ParsePrimaryExpression();
 
-            left = new BinaryExpressionNode(left, operatorLexeme, right);
+            while (IsBinaryOperator(PeekToken()?.Lexeme) && GetPrecedence(PeekToken()?.Lexeme) >= precedence)
+            {
+                Token operatorToken = GetToken();
+                TokenType operatorType = operatorToken.Type;
+
+                if (operatorType == TokenType.Symbol)
+                {
+                    string operatorLexeme = operatorToken.Lexeme;
+                    ExpressionNode right = ParseBinaryExpression(GetPrecedence(operatorLexeme));
+
+                    left = new BinaryExpressionNode(left, operatorLexeme, right);
+                }
+                else
+                {
+                    throw new Exception($"Syntax error at llline {operatorToken.Line}: Unexpected token '{operatorToken.Lexeme}'");
+                }
+            }
+
+            return left;
+        }
+
+
+
+private ExpressionNode ParsePrimaryExpression()
+{
+    Token currentToken = GetToken();
+
+    if (currentToken.Type == TokenType.Keyword)
+    {
+        if (IsKeyword("print", currentToken.Lexeme))
+        {
+            return ParsePrintStatementt();
+        }
+        else if (IsKeyword("let", currentToken.Lexeme))
+        {
+            return ParseVariableDeclarationt();
+        }
+        else if (IsKeyword("if", currentToken.Lexeme))
+        {
+            return ParseIfStatementt();
+        }
+        else if (IsKeyword("function", currentToken.Lexeme))
+        {
+            return ParseInlineFunctionDeclarationt();
+        }
+        else if (IsKeyword("sin", currentToken.Lexeme) || IsKeyword("cos", currentToken.Lexeme))
+        {
+            return ParseFunctionCall(currentToken.Lexeme);
         }
         else
         {
-            throw new Exception($"Syntax error at line {operatorToken.Line}: Unexpected token '{operatorToken.Lexeme}'");
+            return ParseVariableReference(currentToken.Lexeme);
         }
     }
-
-    return left;
+    else if (currentToken.Type == TokenType.NumberLiteral)
+    {
+        return ParseNumberLiteral(currentToken.Lexeme);
+    }
+    else if (currentToken.Type == TokenType.StringLiteral)
+    {
+        return ParseStringLiteral(currentToken.Lexeme);
+    }
+    else if (currentToken.Type == TokenType.Symbol && currentToken.Lexeme == "(")
+    {
+        ExpressionNode expression = ParseExpression();
+        ExpectSymbol(")");
+        return expression;
+    }
+    else
+    {
+        // Error sintáctico
+        throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
+    }
 }
 
 
 
-        private ExpressionNode ParsePrimaryExpression()
-        {
-            Token currentToken = GetToken();
 
-            if (currentToken.Type == TokenType.Identifier)
-            {
-                if (IsKeyword("print", currentToken.Lexeme))
-                {
-                    return ParsePrintStatement();
-                }
-                else if (IsKeyword("let", currentToken.Lexeme))
-                {
-                    return ParseVariableDeclaration();
-                }
-                else if (IsKeyword("if", currentToken.Lexeme))
-                {
-                    return ParseIfStatement();
-                }
-                else if (IsKeyword("function", currentToken.Lexeme))
-                {
-                    return ParseInlineFunctionDeclaration();
-                }
-                else if (IsKeyword("sin", currentToken.Lexeme) || IsKeyword("cos", currentToken.Lexeme))
-                {
-                    return ParseFunctionCall(currentToken.Lexeme);
-                }
-                else
-                {
-                    return ParseVariableReference(currentToken.Lexeme);
-                }
-            }
-            else if (currentToken.Type == TokenType.NumberLiteral)
-            {
-                return ParseNumberLiteral(currentToken.Lexeme);
-            }
-            else if (currentToken.Type == TokenType.StringLiteral)
-            {
-                return ParseStringLiteral(currentToken.Lexeme);
-            }
-            else if (currentToken.Type == TokenType.Symbol && currentToken.Lexeme == "(")
-            {
-                ExpressionNode expression = ParseExpression();
-                ExpectSymbol(")");
-                return expression;
-            }
-            else
-            {
-                // Error sintáctico
-                throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
-            }
+
+
+
+private ExpressionNode ParsePrintStatementt()
+{
+    ExpectKeyword("print");
+
+    ExpressionNode expression = ParseExpression();
+
+    return new PrintStatementNodeExpression(expression);
+}
+
+private ExpressionNode ParseVariableDeclarationt()
+{
+    ExpectKeyword("let");
+
+    Token identifierToken = GetToken();
+    ExpectTokenType(TokenType.Identifier);
+
+    ExpectSymbol("=");
+
+    ExpressionNode expression = ParseExpression();
+
+    ExpectSymbol(";");
+
+    return new VariableDeclarationNodeExpression(identifierToken.Lexeme, expression);
+}
+
+private ExpressionNode ParseIfStatementt()
+{
+    ExpectKeyword("if");
+
+    ExpectSymbol("(");
+
+    ExpressionNode condition = ParseExpression();
+
+    ExpectSymbol(")");
+
+    ExpressionNode ifBody = ParseExpression();
+
+    ExpectKeyword("else");
+
+        //GetToken(); // Consume the "else" keyword
+        ExpressionNode elseBody = ParseExpression();
+        return new IfStatementNodeExpression(condition, ifBody, elseBody);
+
+}
+
+private ExpressionNode ParseInlineFunctionDeclarationt()
+{
+    ExpectKeyword("function");
+
+    Token identifierToken = GetToken();
+    ExpectTokenType(TokenType.Identifier);
+
+    ExpectSymbol("(");
+
+    List<string> parameters = new List<string>();
+
+    while (PeekToken() != null && PeekToken().Lexeme != ")")
+    {
+        Token parameterToken = GetToken();
+        ExpectTokenType(TokenType.Identifier);
+        parameters.Add(parameterToken.Lexeme);
+
+        if (PeekToken()?.Lexeme == ",")
+        {
+            GetToken(); // Consume the comma
         }
+    }
+
+    ExpectSymbol(")");
+    ExpectSymbol("=>");
+
+    StatementNode body = ParseStatement();
+
+    return new FunctionDeclarationNodeExpression(identifierToken.Lexeme, parameters, body);
+}
+
+
+
+
+
+
+
 
         private VariableReferenceNode ParseVariableReference(string identifier)
         {
@@ -122,6 +211,11 @@ namespace HulkInterpreter
         private FunctionDeclarationNode ParseInlineFunctionDeclaration()
         {
             ExpectKeyword("function");
+
+            Token identifierToken = GetToken();
+            ExpectTokenType(TokenType.Identifier);
+
+
             ExpectSymbol("(");
 
             List<string> parameters = new List<string>();
@@ -156,34 +250,41 @@ namespace HulkInterpreter
 
             return new FunctionCallNode(functionName, argument);
         }
+private StatementNode ParseStatement()
+{
+    Token currentToken = GetToken();
 
-        private StatementNode ParseStatement()
+    if (currentToken.Type == TokenType.Keyword)
+    {
+        if (currentToken.Lexeme == "print")
         {
-            Token currentToken = GetToken();
-
-            if (currentToken.Type == TokenType.Keyword)
-            {
-                if (currentToken.Lexeme == "print")
-                {
-                    return ParsePrintStatement();
-                }
-                else if (currentToken.Lexeme == "let")
-                {
-                    return ParseVariableDeclaration();
-                }
-                else if (currentToken.Lexeme == "if")
-                {
-                    return ParseIfStatement();
-                }
-            }
-
-            if (currentToken.Type == TokenType.Identifier)
-            {
-                return ParseAssignmentStatement(currentToken.Lexeme);
-            }
-
-            throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
+            return ParsePrintStatement();
         }
+        else if (currentToken.Lexeme == "let")
+        {
+            return ParseVariableDeclaration();
+        }
+        else if (currentToken.Lexeme == "if")
+        {
+            return ParseIfStatement();
+        }
+    }
+    else if (currentToken.Type == TokenType.Identifier)
+    {
+        Token nextToken = PeekToken();
+
+        if (nextToken?.Lexeme == "(")
+        {
+            return (StatementNode)ParseFunctionDeclaration();
+        }
+        else
+        {
+            return ParseAssignmentStatement(currentToken.Lexeme);
+        }
+    }
+
+    throw new Exception($"Syntax error at line {currentToken.Line}: Unexpected token '{currentToken.Lexeme}'");
+}
 
         private FunctionDeclarationNode ParseFunctionDeclaration()
         {
@@ -245,9 +346,13 @@ namespace HulkInterpreter
 
         private PrintStatementNode ParsePrintStatement()
         {
-            ExpectKeyword("print");
+            //ExpectKeyword("print");
+
+            ExpectSymbol("(");
 
             ExpressionNode expression = ParseExpression();
+
+            ExpectSymbol(")");
 
             ExpectSymbol(";");
 
@@ -278,9 +383,9 @@ namespace HulkInterpreter
         {
             Token currentToken = GetToken();
 
-            if (currentToken.Type != TokenType.Keyword && !IsKeyword(expectedKeyword, currentToken.Lexeme))
+            if (currentToken.Type != TokenType.Keyword || !IsKeyword(expectedKeyword, currentToken.Lexeme))
             {
-                throw new Exception($"Syntax error at line {currentToken.Line}: Expected keyword '{expectedKeyword}', but found '{currentToken.Lexeme}'");
+                throw new Exception($"Syntax error at line {currentToken.Line}: Expected keywordddd '{expectedKeyword}', but found '{currentToken.Lexeme}'");
             }
         }
 
@@ -315,30 +420,27 @@ namespace HulkInterpreter
         }
 
         private bool IsBinaryOperator(string lexeme)
-{
-    return lexeme == "+" || lexeme == "-" || lexeme == "*" || lexeme == "/" || lexeme == "sin" || lexeme == "cos" || lexeme == "!";
-}
+        {
+            return lexeme == "+" || lexeme == "-" || lexeme == "*" || lexeme == "/" || lexeme == "sin" || lexeme == "cos" || lexeme == "!";
+        }
 
         private int GetPrecedence(string lexeme)
-{
-    switch (lexeme)
-    {
-        case "+":
-        case "-":
-            return 1;
-        case "*":
-        case "/":
-            return 2;
-        case "sin":
-        case "cos":
-        case "!":
-            return 3;
-        default:
-            return 0;
+        {
+            switch (lexeme)
+            {
+                case "+":
+                case "-":
+                    return 1;
+                case "*":
+                case "/":
+                    return 2;
+                case "sin":
+                case "cos":
+                case "!":
+                    return 3;
+                default:
+                    return 0;
+            }
+        }
     }
-}
-
-
-
-}
 }

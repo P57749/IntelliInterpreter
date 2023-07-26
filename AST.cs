@@ -80,7 +80,7 @@ namespace HulkInterpreter
         }
     }
 
-    public class PrintStatementNode : ExpressionNode
+public class PrintStatementNode : StatementNode
 {
     public ExpressionNode Expression { get; }
 
@@ -89,15 +89,16 @@ namespace HulkInterpreter
         Expression = expression;
     }
 
-    public override object Evaluate()
+    public override void Execute()
     {
         var result = Expression.Evaluate();
         Console.WriteLine(result);
-        return null; //
     }
 }
 
-    public class VariableDeclarationNode : ExpressionNode
+
+
+public class VariableDeclarationNode : StatementNode
 {
     public string Identifier { get; }
     public ExpressionNode Expression { get; }
@@ -108,17 +109,19 @@ namespace HulkInterpreter
         Expression = expression;
     }
 
-    public override object Evaluate()
+    public override void Execute()
     {
         // Obtener el valor de la expresión
+
         var value = Expression.Evaluate();
 
         // Declarar la variable y asignarle el valor
-        VariableScope.AddVariable(Identifier, value);
 
-        return null; // 
+        VariableScope.AddVariable(Identifier, value);
     }
 }
+
+
 
 
     public class AssignmentStatementNode : StatementNode
@@ -150,53 +153,53 @@ namespace HulkInterpreter
 }
 
 
-    public class IfStatementNode : ExpressionNode
+    public class IfStatementNode : StatementNode
 {
     public ExpressionNode Condition { get; }
-    public ExpressionNode IfBody { get; }
-    public ExpressionNode ElseBody { get; }
+    public StatementNode IfBody { get; }
+    public StatementNode ElseBody { get; }
 
-    public IfStatementNode(ExpressionNode condition, ExpressionNode ifBody, ExpressionNode elseBody)
+    public IfStatementNode(ExpressionNode condition, StatementNode ifBody, StatementNode elseBody)
     {
         Condition = condition;
         IfBody = ifBody;
         ElseBody = elseBody;
     }
 
-    public override object Evaluate()
+    public override void Execute()
     {
         var conditionValue = Condition.Evaluate();
         if (Convert.ToBoolean(conditionValue))
         {
-            return IfBody.Evaluate();
+            IfBody.Execute();
         }
         else
         {
-            return ElseBody.Evaluate();
+            ElseBody.Execute();
         }
     }
 }
 
 
 
-public class FunctionDeclarationNode : ExpressionNode
+public class FunctionDeclarationNode : StatementNode
 {
     public string Identifier { get; }
     public List<string> Parameters { get; }
-    public ExpressionNode Body { get; }
+    public StatementNode Body { get; }
 
-    public FunctionDeclarationNode(string identifier, List<string> parameters, ExpressionNode body)
+    public FunctionDeclarationNode(string identifier, List<string> parameters, StatementNode body)
     {
         Identifier = identifier;
         Parameters = parameters;
         Body = body;
     }
 
-    public override object Evaluate()
+    public override void Execute()
 {
     var function = new FunctionDefinition(Parameters, Body);
     FunctionScope.AddFunction(Identifier, function);
-    return Identifier; // Devuelve el nombre de la función declarada
+    //return Identifier; // Devuelve el nombre de la función declarada
 }
 }
 
@@ -405,30 +408,6 @@ public class BinaryExpressionNode : ExpressionNode
         }
     }
 
-//     private object PerformSymbolicOperation(object leftValue, object rightValue)
-// {
-//     // Realizar las operaciones según el operador
-//     switch (Operator)
-//     {
-//         case TokenType.Symbol when Operator.Lexeme == "+":
-//             return Add(leftValue, rightValue);
-//         case TokenType.Symbol when Operator.Lexeme == "-":
-//             return Subtract(leftValue, rightValue);
-//         case TokenType.Symbol when Operator.Lexeme == "*":
-//             return Multiply(leftValue, rightValue);
-//         case TokenType.Symbol when Operator.Lexeme == "/":
-//             return Divide(leftValue, rightValue);
-//         case TokenType.Symbol when Operator.Lexeme == "sin":
-//             return Sin(leftValue);
-//         case TokenType.Symbol when Operator.Lexeme == "cos":
-//             return Cos(leftValue);
-//         case TokenType.Symbol when Operator.Lexeme == "!":
-//             return Factorial(leftValue);
-//         default:
-//             throw new InvalidOperationException($"Unsupported symbolic operator: {Operator}");
-//     }
-// }
-
 
 private object Add(object leftValue, object rightValue)
     {
@@ -502,6 +481,92 @@ private object Add(object leftValue, object rightValue)
     }
 }
 
+//    //
+//  //   //
+//   //
 
+public class PrintStatementNodeExpression : ExpressionNode
+{
+    public ExpressionNode Expression { get; }
+
+    public PrintStatementNodeExpression(ExpressionNode expression)
+    {
+        Expression = expression;
+    }
+
+    public override object Evaluate()
+    {
+        var result = Expression.Evaluate();
+        //Console.WriteLine(result);
+        return result;
+    }
+}
+
+public class VariableDeclarationNodeExpression : ExpressionNode
+{
+    public string Identifier { get; }
+    public ExpressionNode Expression { get; }
+
+    public VariableDeclarationNodeExpression(string identifier, ExpressionNode expression)
+    {
+        Identifier = identifier;
+        Expression = expression;
+    }
+
+    public override object Evaluate()
+    {
+        var value = Expression.Evaluate();
+        VariableScope.AddVariable(Identifier, value);
+        return null;
+    }
+}
+
+public class IfStatementNodeExpression : ExpressionNode
+{
+    public ExpressionNode Condition { get; }
+    public ExpressionNode IfBody { get; }
+    public ExpressionNode ElseBody { get; }
+
+    public IfStatementNodeExpression(ExpressionNode condition, ExpressionNode ifBody, ExpressionNode elseBody)
+    {
+        Condition = condition;
+        IfBody = ifBody;
+        ElseBody = elseBody;
+    }
+
+    public override object Evaluate()
+    {
+        var conditionValue = Condition.Evaluate();
+        if (Convert.ToBoolean(conditionValue))
+        {
+            return IfBody.Evaluate();
+        }
+        else
+        {
+            return ElseBody.Evaluate();
+        }
+    }
+}
+
+public class FunctionDeclarationNodeExpression : ExpressionNode
+{
+    public string Identifier { get; }
+    public List<string> Parameters { get; }
+    public StatementNode Body { get; }
+
+    public FunctionDeclarationNodeExpression(string identifier, List<string> parameters, StatementNode body)
+    {
+        Identifier = identifier;
+        Parameters = parameters;
+        Body = body;
+    }
+
+    public override object Evaluate()
+    {
+        var function = new FunctionDefinition(Parameters, Body);
+        FunctionScope.AddFunction(Identifier, function);
+        return Identifier;
+    }
+}
 
 }
